@@ -98,36 +98,6 @@ module.exports = {
     getWatched: function (success, error) {
         return execPromise(success, error, "GeofencePlugin", "getWatched", []);
     },
-    /**
-     * Called when app is opened via Notification bar
-     *
-     * @name onNotificationClicked
-     * @param {JSON} notificationData user data from notification
-     */
-    onNotificationClicked: function (notificationData) {},
-    /**
-     * Called when app received geofence transition event
-     * @param  {Array} geofences
-     */
-    onTransitionReceived: function (geofences) {
-        this.receiveTransition(geofences);
-    },
-    /**
-     * Called when app received geofence transition event
-     * @deprecated since version 0.4.0, see onTransitionReceived
-     * @param  {Array} geofences
-     */
-    receiveTransition: function (geofences) {},
-    /**
-     * Simple ping function for testing
-     * @param  {Function} success callback
-     * @param  {Function} error callback
-     *
-     * @return {Promise}
-     */
-    ping: function (success, error) {
-        return execPromise(success, error, "GeofencePlugin", "ping", []);
-    }
 };
 
 function execPromise(success, error, pluginName, method, args) {

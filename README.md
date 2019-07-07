@@ -4,28 +4,45 @@
 
 Plugin to monitor circular geofences using mobile devices. The purpose is to notify user if crossing the boundary of the monitored geofence.
 
+Plugin support geofence CRUD operation via javascript code, and support geofence transition handling via native code.
+
 *Geofences persist after device reboot. You do not have to open your app first to monitor added geofences*
 
-## Example applications
+<!-- ## Example applications
 
 Check out our example applications:
 
 * https://github.com/cowbell/ionic-geofence built with [Ionic](http://ionic.io/) framework
 * https://github.com/tsubik/ionic2-geofence built with [Ionic 2](http://ionic.io/2) framework
-* https://github.com/cowbell/ember-geofence built with [Ember.js](http://emberjs.com/), [Cordova](https://cordova.apache.org/), [Material Design](https://www.google.com/design/spec/material-design/introduction.html)
+* https://github.com/cowbell/ember-geofence built with [Ember.js](http://emberjs.com/), [Cordova](https://cordova.apache.org/), [Material Design](https://www.google.com/design/spec/material-design/introduction.html) -->
 
+# Setup
 ## Installation
 
-From master
 ```
-cordova plugin add https://github.com/cowbell/cordova-plugin-geofence
+cordova plugin add https://github.com/wangxu724/cordova-plugin-geofence
 ```
 
-Latest stable version
+### Android quirks
+Plugin uses Google Play Services so you need to have it installed on your device.
 
-```
-cordova plugin add cordova-plugin-geofence
-```
+
+### iOS quirks
+
+Since iOS 11, iOS need `NSLocationAlwaysAndWhenInUseUsageDescription` and `NSLocationWhenInUseUsageDescription` entries in the info.plist.
+
+`NSLocationWhenInUseUsageDescription` describes the reason that the app accesses the user's location.
+`NSLocationAlwaysAndWhenInUseUsageDescription` describes the reason that the app accesses the user's location when not in use (in the background).
+
+When the system prompts the user to allow access, this string is displayed as part of the dialog box. To add this entry you can pass the variable `GEOFENCE_IN_USE_USAGE_DESCRIPTION` and `GEOFENCE_ALWAYS_USAGE_DESCRIPTION` on plugin install.
+
+Example:
+`cordova plugin add cordova-plugin-geofence --variable GEOFENCE_IN_USE_USAGE_DESCRIPTION="your usage message" --variable GEOFENCE_ALWAYS_USAGE_DESCRIPTION="your usage message"`
+
+If you don't pass the variable, the plugin will add a default string as value.
+
+Plugin is written in Swift. All xcode project options to enable swift support are set up automatically after plugin is installed thanks to
+[cordova-plugin-add-swift-support](https://github.com/akofman/cordova-plugin-add-swift-support).
 
 ## Removing the Plugin from project
 
@@ -39,84 +56,25 @@ cordova plugin rm cordova-plugin-geofence
 
 - Android
 - iOS >=7.0
-- Windows Phone 8.1
-    - using Universal App (cordova windows platform)
-    - using Silverlight App (cordova wp8 platform retargeted to WP 8.1)
 
-## Known Limitations
+# Known Limitations
 
 **This plugin is a wrapper on devices' native APIs** which mean it comes with **limitations of those APIs**.
 
-### Geofence Limit
+## Geofence Limit
 
 There are certain limits of geofences that you can set in your application depends on the platform of use.
 
 - iOS - 20 geofences
 - Android - 100 geofences
 
-### Javascript background execution
-
-This is known limitation. When in background your app may/will be suspended to not use system resources.
-Therefore, **any javascript code won't run**, only background services can run in the background. Local
-notification when user crosses a geofence region will still work, but any custom javascript code won't.
-If you want to perform a custom action on geofence crossing, [try to write it in native code](#listening-for-geofence-transitions-in-native-code).
-
-# Platform specifics
-
-## Android
-
-This plugin uses Google Play Services so you need to have it installed on your device.
-
-## iOS
-
-Plugin is written in Swift. All xcode project options to enable swift support are set up automatically after plugin is installed thanks to
-[cordova-plugin-add-swift-support](https://github.com/akofman/cordova-plugin-add-swift-support).
-
-:warning: Swift 3 is not supported at the moment, the following preference has to be added in your project :
-
-For Cordova projects
-
-`<preference name="UseLegacySwiftLanguageVersion" value="true" />`
-
-For PhoneGap projects
-
-`<preference name="swift-version" value="2.3" />`
-
-### iOS Quirks
-
-Since iOS 10 it's mandatory to add a `NSLocationAlwaysUsageDescription` and `NSLocationWhenInUseUsageDescription` entries in the info.plist.
-
-`NSLocationWhenInUseUsageDescription` describes the reason that the app accesses the user's location.
-`NSLocationAlwaysUsageDescription` describes the reason that the app accesses the user's location when not in use (in the background).
-
-When the system prompts the user to allow access, this string is displayed as part of the dialog box. To add this entry you can pass the variable `GEOFENCE_IN_USE_USAGE_DESCRIPTION` and `GEOFENCE_ALWAYS_USAGE_DESCRIPTION` on plugin install.
-
-Example:
-`cordova plugin add cordova-plugin-geofence --variable GEOFENCE_IN_USE_USAGE_DESCRIPTION="your usage message" --variable GEOFENCE_ALWAYS_USAGE_DESCRIPTION="your usage message"`
-
-If you don't pass the variable, the plugin will add a default string as value.
-
-## Windows phone 8.1
-
-Plugin can be used with both windows phone 8.1 type projects Univeral App, Silverlight App.
-
-In order to use toast notifications you have to enable this feature in appxmanifest file either using UI in Visual Studio or edit file setting attribute **ToastCapable="true"** in **m3:VisualElements** node under Package/Applications/Application.
-
-If you are retargeting WP 8.0 to WP 8.1 you need to register background task to perform geofence notifications. Register it via UI in Visual Studio or add following code under Package/Applications/Application/Extensions
-
-```xml
-<Extension Category="windows.backgroundTasks" EntryPoint="GeofenceComponent.GeofenceTrigger">
-    <BackgroundTasks>
-        <m2:Task Type="location" />
-    </BackgroundTasks>
-</Extension>
-```
-
 # Using the plugin
+## Geofence CRUD operation
+Geofence CRUD operation is done on the javascript side when the app is fully launched.
 
 Cordova initialize plugin to `window.geofence` object.
 
-## Methods
+### Methods
 
 All methods returning promises, but you can also use standard callback functions.
 
@@ -126,20 +84,31 @@ All methods returning promises, but you can also use standard callback functions
 - `window.geofence.removeAll(onSuccess, onError)`
 - `window.geofence.getWatched(onSuccess, onError)`
 
-For listening of geofence transistion you can override onTransitionReceived method
-- `window.geofence.onTransitionReceived(geofences)`
+<!-- For listening of geofence transistion you can override onTransitionReceived method
+- `window.geofence.onTransitionReceived(geofences)` -->
 
-## Constants
+### Constants
 
 - `TransitionType.ENTER` = 1
 - `TransitionType.EXIT` = 2
 - `TransitionType.BOTH` = 3
 
-## Error Codes
+### Geofence structure
+```javascript
+{
+    id:             String, // A unique identifier of geofence
+    latitude:       Number, // Geo latitude of geofence
+    longitude:      Number, // Geo longitude of geofence
+    radius:         Number, // Radius of geofence in meters
+    transitionType: Number // Type of transition 1 - Enter, 2 - Exit, 3 - Both
+}
+```
+
+### Error codes
 
 Both `onError` function handler and promise rejection take `error` object as an argument.
 
-```
+```javascript
 error: {
     code: String,
     message: String
@@ -153,7 +122,7 @@ Error codes:
 - `GEOFENCE_NOT_AVAILABLE`
 - `GEOFENCE_LIMIT_EXCEEDED`
 
-## Plugin initialization
+### Plugin initialization
 
 The plugin is not available until `deviceready` event is fired.
 
@@ -171,25 +140,15 @@ document.addEventListener('deviceready', function () {
 Initialization process is responsible for requesting neccessary permissions.
 If required permissions are not granted then initialization fails with error message.
 
-## Adding new geofence to monitor
+### Adding new geofence to monitor
 
 ```javascript
 window.geofence.addOrUpdate({
-    id:             String, //A unique identifier of geofence
-    latitude:       Number, //Geo latitude of geofence
-    longitude:      Number, //Geo longitude of geofence
-    radius:         Number, //Radius of geofence in meters
-    transitionType: Number, //Type of transition 1 - Enter, 2 - Exit, 3 - Both
-    notification: {         //Notification object
-        id:             Number, //optional should be integer, id of notification
-        title:          String, //Title of notification
-        text:           String, //Text of notification
-        smallIcon:      String, //Small icon showed in notification area, only res URI
-        icon:           String, //icon showed in notification drawer
-        openAppOnClick: Boolean,//is main app activity should be opened after clicking on notification
-        vibration:      [Integer], //Optional vibration pattern - see description
-        data:           Object  //Custom object associated with notification
-    }
+    id:             String, // A unique identifier of geofence
+    latitude:       Number, // Geo latitude of geofence
+    longitude:      Number, // Geo longitude of geofence
+    radius:         Number, // Radius of geofence in meters
+    transitionType: Number // Type of transition 1 - Enter, 2 - Exit, 3 - Both
 }).then(function () {
     console.log('Geofence successfully added');
 }, function (error) {
@@ -205,64 +164,7 @@ Geofence overrides the previously one with the same `id`.
 
 *All geofences are stored on the device and restored to monitor after device reboot.*
 
-Notification overrides the previously one with the same `notification.id`.
-
-## Notification vibrations
-
-You can set vibration pattern for the notification or disable default vibrations.
-
-To change vibration pattern set `vibrate` property of `notification` object in geofence.
-
-### Examples
-
-```
-//disable vibrations
-notification: {
-    vibrate: [0]
-}
-```
-
-```
-//Vibrate for 1 sec
-//Wait for 0.5 sec
-//Vibrate for 2 sec
-notification: {
-    vibrate: [1000, 500, 2000]
-}
-```
-
-### Platform quirks
-
-Fully working only on Android.
-
-On iOS vibration pattern doesn't work. Plugin only allow to vibrate with default system pattern.
-
-Windows Phone - current status is TODO
-
-## Notification icons
-
-To set notification icons use `icon` and `smallIcon` property in `notification` object.
-
-As a value you can enter:
-- name of native resource or your application resource e.g. `res://ic_menu_mylocation`, `res://icon`, `res://ic_menu_call`
-- relative path to file in `www` directory e.g. `file://img/ionic.png`
-
-`smallIcon` - supports only resources URI
-
-### Examples
-
-```
-notification: {
-    smallIcon: 'res://my_location_icon',
-    icon: 'file://img/geofence.png'
-}
-```
-
-### Platform quirks
-
-Works only on Android platform so far.
-
-## Removing
+### Removing
 
 Removing single geofence
 ```javascript
@@ -279,7 +181,7 @@ Removing more than one geofence at once.
 window.geofence.remove([geofenceId1, geofenceId2, geofenceId3]);
 ```
 
-## Removing all geofences
+### Removing all geofences
 
 ```javascript
 window.geofence.removeAll()
@@ -291,7 +193,7 @@ window.geofence.removeAll()
     });
 ```
 
-## Getting watched geofences from device
+### Getting watched geofences from device
 
 ```javascript
 window.geofence.getWatched().then(function (geofencesJson) {
@@ -299,39 +201,35 @@ window.geofence.getWatched().then(function (geofencesJson) {
 });
 ```
 
-## Listening for geofence transitions
-
-```javascript
-window.geofence.onTransitionReceived = function (geofences) {
-    geofences.forEach(function (geo) {
-        console.log('Geofence transition detected', geo);
-    });
-};
-```
-
-## Listening for geofence transitions in native code
+## Handle geofence transition event
+Geofence transition event need to be handled in native code. This provide more flexibility than previous version, which only support javascript handling.
 
 ### Android
 
-For android plugin broadcasting intent `com.cowbell.cordova.geofence.TRANSITION`. You can implement your own `BroadcastReceiver` and start listening for this intent.
+Plugin defines a [signature permission](https://developer.android.com/guide/topics/manifest/permission-element.html#plevel) `com.geofence.permission.GEOFENCE_TRANSITION_BROADCAST`, and will add `<uses-permission android:name="com.geofence.permission.GEOFENCE_TRANSITION_BROADCAST" />` in `AndroidMainifest.xml`
 
-Register receiver in `AndroidManifest.xml`
+When a geofence transition happens, plugin will broadcast an `com.geofence.GEOFENCE_TRANSITION` intent with this permission.
+
+In order to receive the intent, app need to have its own `BroadcastReceiver` that requires this permission.
+
+When an intent is received, app can call `intent.getStringExtra("transitionData")` to get transition data, which is a json string of an **array(different from ios)** of [geofence structure](#Geofence-structure) with `transitionType` field set to `1`(enter) or `2`(exit) based on current transition event.
+
+#### Example of handling geofence transition intent
+First, register receiver in `AndroidManifest.xml`
 
 ```xml
-<receiver android:name="YOUR_APP_PACKAGE_NAME.TransitionReceiver">
+<receiver
+    android:name="YOUR_APP_PACKAGE_NAME.TransitionReceiver"
+    android:permission="com.geofence.permission.GEOFENCE_TRANSITION_BROADCAST">
     <intent-filter>
-        <action android:name="com.cowbell.cordova.geofence.TRANSITION" />
+        <action android:name="com.geofence.GEOFENCE_TRANSITION" />
     </intent-filter>
 </receiver>
 ```
 
-Example `TransitionReceiver.java` code
+Then, implement a `TransitionReceiver.java` as following
 
 ```java
-......
-import com.cowbell.cordova.geofence.Gson;
-import com.cowbell.cordova.geofence.GeoNotification;
-
 public class TransitionReceiver extends BroadcastReceiver {
 
     @Override
@@ -340,27 +238,32 @@ public class TransitionReceiver extends BroadcastReceiver {
 
         if (error != null) {
             //handle error
-            Log.println(Log.ERROR, "YourAppTAG", error);
         } else {
             String geofencesJson = intent.getStringExtra("transitionData");
-            GeoNotification[] geoNotifications = Gson.get().fromJson(geofencesJson, GeoNotification[].class);
-            //handle geoNotifications objects
+            //handle geofence here
         }
     }
 }
 ```
 
-## When the app is opened via Notification click
+### iOS
+On iOS, when a geofence transition happends, plugin will post a `didGeofenceTransition` event to NotificationCenter.
 
-Android, iOS only
+App need to have its own observer. User can add the observer in `application(_:didFinishLaunchingWithOptions:)` and start monitoring the geofence transition event right after app launch.
 
-```javascript
-window.geofence.onNotificationClicked = function (notificationData) {
-    console.log('App opened from Geo Notification!', notificationData);
-};
+When an event is observed, observer will receive data of type `NSNotification`, the `object` property of which is a json string of [geofence structure](#Geofence-structure) as input parameter with `transitionType` field set to `1`(enter) or `2`(exit) based on current transition event.
+
+#### Example of handling geofence transition
+```swift
+ NotificationCenter.default.addObserver(
+            someObject,
+            selector: #selector(someGeofenceTransitionHandling(notification:)),
+            name: NSNotification.Name(rawValue: "didGeofenceTransition"),
+            object: nil
+        )
 ```
 
-# Example usage
+<!-- # Example usage
 
 Adding geofence to monitor entering Gliwice city center area of radius 3km
 
@@ -403,7 +306,7 @@ Before you run `cordova-paramedic` install `npm install -g ios-sim`
 
 ### Troubleshooting
 
-Add `--verbose` at the end of `cordova-paramedic` command.
+Add `--verbose` at the end of `cordova-paramedic` command. -->
 
 ## License
 

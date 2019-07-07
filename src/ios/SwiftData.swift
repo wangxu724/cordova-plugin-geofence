@@ -25,7 +25,6 @@
 import Foundation
 import UIKit
 
-
 // MARK: - SwiftData
 
 public struct SwiftData {
@@ -65,7 +64,7 @@ public struct SwiftData {
             }
 
             //execute the change statement
-            error = SQLiteDB.sharedInstance.executeChange(sqlStr)
+            error = SQLiteDB.sharedInstance.executeChange(sqlStr: sqlStr)
 
             //close database connection
             SQLiteDB.sharedInstance.close()
@@ -76,7 +75,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -122,7 +121,7 @@ public struct SwiftData {
             }
 
             //execute the change statement
-            error = SQLiteDB.sharedInstance.executeChange(sqlStr, withArgs: withArgs)
+            error = SQLiteDB.sharedInstance.executeChange(sqlStr: sqlStr, withArgs: withArgs)
 
             //close database connection
             SQLiteDB.sharedInstance.close()
@@ -133,7 +132,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -170,9 +169,9 @@ public struct SwiftData {
 
             //execute the change statements
             for sqlStr in sqlArr {
-                if let err = SQLiteDB.sharedInstance.executeChange(sqlStr) {
+                if let err = SQLiteDB.sharedInstance.executeChange(sqlStr: sqlStr) {
                     SQLiteDB.sharedInstance.close()
-                    if let index = sqlArr.indexOf(sqlStr) {
+                    if let index = sqlArr.firstIndex(of: sqlStr) {
                         print("Error occurred on array item: \(index) -> \"\(sqlStr)\"")
                     }
                     error = err
@@ -189,7 +188,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -232,7 +231,7 @@ public struct SwiftData {
             }
 
             //execute the query statement
-            (result, error) = SQLiteDB.sharedInstance.executeQuery(sqlStr)
+            (result, error) = SQLiteDB.sharedInstance.executeQuery(sqlStr: sqlStr)
 
             //close database connection
             SQLiteDB.sharedInstance.close()
@@ -243,7 +242,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -284,7 +283,7 @@ public struct SwiftData {
             }
 
             //execute the query statement
-            (result, error) = SQLiteDB.sharedInstance.executeQuery(sqlStr, withArgs: withArgs)
+            (result, error) = SQLiteDB.sharedInstance.executeQuery(sqlStr: sqlStr, withArgs: withArgs)
 
             //close database connection
             SQLiteDB.sharedInstance.close()
@@ -295,7 +294,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -322,7 +321,7 @@ public struct SwiftData {
 
     - returns:        An Int with the error code, or nil if there was no error
     */
-    public static func executeWithConnection(flags: SD.Flags, closure: ()->Void) -> Int? {
+    public static func executeWithConnection(flags: SD.Flags, closure: @escaping ()->Void) -> Int? {
 
         //create error variable
         var error: Int? = nil
@@ -331,7 +330,7 @@ public struct SwiftData {
         let task: ()->Void = {
 
             //open the custom connection
-            if let err = SQLiteDB.sharedInstance.openWithFlags(flags.toSQL()) {
+            if let err = SQLiteDB.sharedInstance.openWithFlags(flags: flags.toSQL()) {
                 error = err
                 return
             }
@@ -351,7 +350,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -373,7 +372,7 @@ public struct SwiftData {
     */
     public static func escapeValue(obj: AnyObject?) -> String {
 
-        return SQLiteDB.sharedInstance.escapeValue(obj)
+        return SQLiteDB.sharedInstance.escapeValue(obj: obj)
     }
 
     /**
@@ -385,7 +384,7 @@ public struct SwiftData {
     */
     public static func escapeIdentifier(obj: String) -> String {
 
-        return SQLiteDB.sharedInstance.escapeIdentifier(obj)
+        return SQLiteDB.sharedInstance.escapeIdentifier(obj: obj)
     }
 
 
@@ -420,7 +419,7 @@ public struct SwiftData {
             }
 
             //execute the statement
-            error = SQLiteDB.sharedInstance.createSQLTable(table, withColumnsAndTypes: values)
+            error = SQLiteDB.sharedInstance.createSQLTable(table: table, withColumnsAndTypes: values)
 
             //close the database connection
             SQLiteDB.sharedInstance.close()
@@ -431,7 +430,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -465,7 +464,7 @@ public struct SwiftData {
             }
 
             //execute the statement
-            error = SQLiteDB.sharedInstance.deleteSQLTable(table)
+            error = SQLiteDB.sharedInstance.deleteSQLTable(table: table)
 
             //close the database connection
             SQLiteDB.sharedInstance.close()
@@ -476,7 +475,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -521,7 +520,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -542,7 +541,7 @@ public struct SwiftData {
     */
     public static func errorMessageForCode(code: Int) -> String {
 
-        return SwiftData.SDError.errorMessageFromCode(code)
+        return SwiftData.SDError.errorMessageFromCode(errorCode: code)
     }
 
     /**
@@ -593,7 +592,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -639,7 +638,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -665,7 +664,7 @@ public struct SwiftData {
 
     - returns:          An Int with the error code, or nil if there was no error
     */
-    public static func createIndex(name name: String, onColumns: [String], inTable: String, isUnique: Bool = false) -> Int? {
+    public static func createIndex(name: String, onColumns: [String], inTable: String, isUnique: Bool = false) -> Int? {
 
         //create the error variable
         var error: Int? = nil
@@ -680,7 +679,7 @@ public struct SwiftData {
             }
 
             //create the index
-            error = SQLiteDB.sharedInstance.createIndex(name, columns: onColumns, table: inTable, unique: isUnique)
+            error = SQLiteDB.sharedInstance.createIndex(name: name, columns: onColumns, table: inTable, unique: isUnique)
 
             //close the database connection
             SQLiteDB.sharedInstance.close()
@@ -691,7 +690,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -725,7 +724,7 @@ public struct SwiftData {
             }
 
             //remove the index
-            error = SQLiteDB.sharedInstance.removeIndex(indexName)
+            error = SQLiteDB.sharedInstance.removeIndex(name: indexName)
 
             //close the database connection
             SQLiteDB.sharedInstance.close()
@@ -736,7 +735,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -781,7 +780,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -817,7 +816,7 @@ public struct SwiftData {
             }
 
             //execute the statement
-            (result, error) = SQLiteDB.sharedInstance.existingIndexesForTable(table)
+            (result, error) = SQLiteDB.sharedInstance.existingIndexesForTable(table: table)
 
             //close the database connection
             SQLiteDB.sharedInstance.close()
@@ -828,7 +827,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -853,7 +852,7 @@ public struct SwiftData {
 
     - returns:                   An Int with the error code, or nil if there was no error committing or rolling back the transaction
     */
-    public static func transaction(transactionClosure: ()->Bool) -> Int? {
+    public static func transaction(transactionClosure: @escaping ()->Bool) -> Int? {
 
         //create the error variable
         var error: Int? = nil
@@ -894,7 +893,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -917,7 +916,7 @@ public struct SwiftData {
 
     - returns:                 An Int with the error code, or nil if there was no error releasing or rolling back the savepoint
     */
-    public static func savepoint(savepointClosure: ()->Bool) -> Int? {
+    public static func savepoint(savepointClosure: @escaping ()->Bool) -> Int? {
 
         //create the error variable
         var error: Int? = nil
@@ -965,7 +964,7 @@ public struct SwiftData {
         if SQLiteDB.sharedInstance.inTransaction || SQLiteDB.sharedInstance.savepointsOpen > 0 || SQLiteDB.sharedInstance.openWithFlags {
             task()
         } else {
-            dispatch_sync(SQLiteDB.sharedInstance.queue) {
+            SQLiteDB.sharedInstance.queue.sync() {
                 task()
             }
         }
@@ -982,30 +981,30 @@ public struct SwiftData {
     */
     public static func saveUIImage(image: UIImage) -> String? {
 
-        let docsPath = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]
-        let imageDirPath = docsPath.stringByAppendingPathComponent("SwiftDataImages")
+        let docsPath = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)[0]
+        let imageDirPath = docsPath.stringByAppendingPathComponent(path: "SwiftDataImages")
 
-        if !NSFileManager.defaultManager().fileExistsAtPath(imageDirPath) {
+        if !FileManager.default.fileExists(atPath: imageDirPath) {
             do {
-                try NSFileManager.defaultManager().createDirectoryAtPath(imageDirPath, withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: imageDirPath, withIntermediateDirectories: false, attributes: nil)
             } catch _ {
                 print("Error creating SwiftData image folder")
                 return nil
             }
         }
 
-        let imageID = NSUUID().UUIDString
+        let imageID = NSUUID().uuidString
 
-        let imagePath = imageDirPath.stringByAppendingPathComponent(imageID)
+        let imagePath = imageDirPath.stringByAppendingPathComponent(path: imageID)
 
         let imageAsData = UIImagePNGRepresentation(image)
-        if !imageAsData!.writeToFile(imagePath, atomically: true) {
+        do {
+            try imageAsData!.write(to: URL(string: imagePath)!, options: .atomic)
+            return imageID
+        } catch _ {
             print("Error saving image")
             return nil
         }
-
-        return imageID
-
     }
 
     /**
@@ -1017,12 +1016,12 @@ public struct SwiftData {
     */
     public static func deleteUIImageWithID(id: String) -> Bool {
 
-        let docsPath = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]
-        let imageDirPath = docsPath.stringByAppendingPathComponent("SwiftDataImages")
-        let fullPath = imageDirPath.stringByAppendingPathComponent(id)
+        let docsPath = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)[0]
+        let imageDirPath = docsPath.stringByAppendingPathComponent(path: "SwiftDataImages")
+        let fullPath = imageDirPath.stringByAppendingPathComponent(path: id)
 
         do {
-            try NSFileManager.defaultManager().removeItemAtPath(fullPath)
+            try FileManager.default.removeItem(atPath: fullPath)
             return true
         } catch _ {
             return false
@@ -1033,7 +1032,7 @@ public struct SwiftData {
 
     // MARK: - SQLiteDB Class
 
-    private class SQLiteDB {
+    class SQLiteDB {
 
         //create a single instance of SQLiteDB
         class var sharedInstance: SQLiteDB {
@@ -1044,14 +1043,13 @@ public struct SwiftData {
         }
 
         //declare SQLiteDB properties
-        var sqliteDB: COpaquePointer = nil
+        var sqliteDB: OpaquePointer? = nil
         var dbPath = SQLiteDB.createPath()
         var inTransaction = false
         var isConnected = false
         var openWithFlags = false
         var savepointsOpen = 0
-        let queue = dispatch_queue_create("SwiftData.DatabaseQueue", DISPATCH_QUEUE_SERIAL)
-
+        let queue = DispatchQueue(label: "SwiftData.DatabaseQueue")
 
         // MARK: - Database Handling Functions
 
@@ -1069,11 +1067,11 @@ public struct SwiftData {
             }
 
             //open connection
-            let status = sqlite3_open(dbPath.cStringUsingEncoding(NSUTF8StringEncoding)!, &sqliteDB)
+            let status = sqlite3_open(dbPath.cString(using: String.Encoding.utf8)!, &sqliteDB)
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: Opening Database")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 return Int(status)
@@ -1116,11 +1114,11 @@ public struct SwiftData {
             }
 
             //open the connection
-            let status = sqlite3_open_v2(dbPath.cStringUsingEncoding(NSUTF8StringEncoding)!, &sqliteDB, flags, nil)
+            let status = sqlite3_open_v2(dbPath.cString(using: String.Encoding.utf8)!, &sqliteDB, flags, nil)
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: Opening Database with Flags")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 return Int(status)
@@ -1149,8 +1147,8 @@ public struct SwiftData {
             let status = sqlite3_close(sqliteDB)
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: Closing Database")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
             }
@@ -1192,8 +1190,8 @@ public struct SwiftData {
 
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: Closing Database with Flags")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 return Int(status)
@@ -1205,9 +1203,9 @@ public struct SwiftData {
         //create the database path
         class func createPath() -> String {
 
-            let docsPath = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]
+            let docsPath = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)[0]
             let databaseStr = "SwiftData.sqlite"
-            let dbPath = docsPath.stringByAppendingPathComponent(databaseStr)
+            let dbPath = docsPath.stringByAppendingPathComponent(path: databaseStr)
 
             return dbPath
         }
@@ -1227,7 +1225,7 @@ public struct SwiftData {
                 return 502
             }
 
-            if let error = executeChange("BEGIN EXCLUSIVE") {
+            if let error = executeChange(sqlStr: "BEGIN EXCLUSIVE") {
                 return error
             }
 
@@ -1240,7 +1238,7 @@ public struct SwiftData {
         //rollback a transaction
         func rollbackTransaction() -> Int? {
 
-            let error = executeChange("ROLLBACK")
+            let error = executeChange(sqlStr: "ROLLBACK")
 
             inTransaction = false
 
@@ -1250,7 +1248,7 @@ public struct SwiftData {
         //commit a transaction
         func commitTransaction() -> Int? {
 
-            let error = executeChange("COMMIT")
+            let error = executeChange(sqlStr: "COMMIT")
 
             inTransaction = false
 
@@ -1265,7 +1263,7 @@ public struct SwiftData {
         //begin a savepoint
         func beginSavepoint() -> Int? {
 
-            if let error = executeChange("SAVEPOINT 'savepoint\(savepointsOpen + 1)'") {
+            if let error = executeChange(sqlStr: "SAVEPOINT 'savepoint\(savepointsOpen + 1)'") {
                 return error
             }
 
@@ -1277,13 +1275,13 @@ public struct SwiftData {
         //rollback a savepoint
         func rollbackSavepoint() -> Int? {
 
-            return executeChange("ROLLBACK TO 'savepoint\(savepointsOpen)'")
+            return executeChange(sqlStr: "ROLLBACK TO 'savepoint\(savepointsOpen)'")
         }
 
         //release a savepoint
         func releaseSavepoint() -> Int? {
 
-            let error = executeChange("RELEASE 'savepoint\(savepointsOpen)'")
+            let error = executeChange(sqlStr: "RELEASE 'savepoint\(savepointsOpen)'")
 
             savepointsOpen -= 1
 
@@ -1303,17 +1301,17 @@ public struct SwiftData {
         }
 
         //return value of column
-        func getColumnValue(statement: COpaquePointer, index: Int32, type: String) -> AnyObject? {
+        func getColumnValue(statement: OpaquePointer, index: Int32, type: String) -> AnyObject? {
 
             switch type {
             case "INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED BIG INT", "INT2", "INT8":
                 if sqlite3_column_type(statement, index) == SQLITE_NULL {
                     return nil
                 }
-                return Int(sqlite3_column_int(statement, index))
+                return Int(sqlite3_column_int(statement, index)) as AnyObject
             case "CHARACTER(20)", "VARCHAR(255)", "VARYING CHARACTER(255)", "NCHAR(55)", "NATIVE CHARACTER", "NVARCHAR(100)", "TEXT", "CLOB":
-                let text = UnsafePointer<Int8>(sqlite3_column_text(statement, index))
-                return String.fromCString(text)
+                guard let text = sqlite3_column_text(statement, index) else { return "" as AnyObject }
+                return String(cString: text) as AnyObject
             case "BLOB", "NONE":
                 let blob = sqlite3_column_blob(statement, index)
                 if blob != nil {
@@ -1325,19 +1323,20 @@ public struct SwiftData {
                 if sqlite3_column_type(statement, index) == SQLITE_NULL {
                     return nil
                 }
-                return Double(sqlite3_column_double(statement, index))
+                return Double(sqlite3_column_double(statement, index)) as AnyObject
             case "BOOLEAN":
                 if sqlite3_column_type(statement, index) == SQLITE_NULL {
                     return nil
                 }
-                return sqlite3_column_int(statement, index) != 0
+                return (sqlite3_column_int(statement, index) != 0) as AnyObject
             case "DATE", "DATETIME":
-                let dateFormatter = NSDateFormatter()
+                let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                let text = UnsafePointer<Int8>(sqlite3_column_text(statement, index))
-                if let string = String.fromCString(text) {
-                    return dateFormatter.dateFromString(string)
+                if let text = sqlite3_column_text(statement, index) {
+                    let string = String(cString: text)
+                    return dateFormatter.date(from: string) as AnyObject?
                 }
+
                 print("SwiftData Warning -> The text date at column: \(index) could not be cast as a String, returning nil")
                 return nil
             default:
@@ -1355,7 +1354,7 @@ public struct SwiftData {
 
             var sql = sqlStr
             if let args = withArgs {
-                let result = bind(args, toSQL: sql)
+                let result = bind(objects: args, toSQL: sql)
                 if let error = result.error {
                     return error
                 } else {
@@ -1363,12 +1362,12 @@ public struct SwiftData {
                 }
             }
 
-            var pStmt: COpaquePointer = nil
+            var pStmt: OpaquePointer? = nil
             var status = sqlite3_prepare_v2(SQLiteDB.sharedInstance.sqliteDB, sql, -1, &pStmt, nil)
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: SQL Prepare")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 sqlite3_finalize(pStmt)
@@ -1378,8 +1377,8 @@ public struct SwiftData {
             status = sqlite3_step(pStmt)
             if status != SQLITE_DONE && status != SQLITE_OK {
                 print("SwiftData Error -> During: SQL Step")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 sqlite3_finalize(pStmt)
@@ -1398,7 +1397,7 @@ public struct SwiftData {
 
             var sql = sqlStr
             if let args = withArgs {
-                let result = bind(args, toSQL: sql)
+                let result = bind(objects: args, toSQL: sql)
                 if let err = result.error {
                     return (resultSet, err)
                 } else {
@@ -1406,12 +1405,12 @@ public struct SwiftData {
                 }
             }
 
-            var pStmt: COpaquePointer = nil
+            var pStmt: OpaquePointer? = nil
             var status = sqlite3_prepare_v2(SQLiteDB.sharedInstance.sqliteDB, sql, -1, &pStmt, nil)
             if status != SQLITE_OK {
                 print("SwiftData Error -> During: SQL Prepare")
-                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                     print("                -> Details: \(errMsg)")
                 }
                 sqlite3_finalize(pStmt)
@@ -1427,9 +1426,10 @@ public struct SwiftData {
                     var row = SDRow()
                     for i: Int32 in 0 ..< columnCount {
                     //for var i: Int32 = 0; i < columnCount; ++i {
-                        let columnName = String.fromCString(sqlite3_column_name(pStmt, i))!
-                        if let columnType = String.fromCString(sqlite3_column_decltype(pStmt, i))?.uppercaseString {
-                            if let columnValue: AnyObject = getColumnValue(pStmt, index: i, type: columnType) {
+                        let columnName = String(cString: sqlite3_column_name(pStmt, i))
+                        if let columnType = sqlite3_column_decltype(pStmt, i) {
+                            let columnTypeStr = String(cString: columnType).uppercased()
+                            if let columnValue: AnyObject = getColumnValue(statement: pStmt!, index: i, type: columnTypeStr) {
                                 row[columnName] = SDColumn(obj: columnValue)
                             }
                         } else {
@@ -1448,7 +1448,7 @@ public struct SwiftData {
                             default:
                                 columnType = "NULL"
                             }
-                            if let columnValue: AnyObject = getColumnValue(pStmt, index: i, type: columnType) {
+                            if let columnValue: AnyObject = getColumnValue(statement: pStmt!, index: i, type: columnType) {
                                 row[columnName] = SDColumn(obj: columnValue)
                             }
                         }
@@ -1458,8 +1458,8 @@ public struct SwiftData {
                     next = false
                 } else {
                     print("SwiftData Error -> During: SQL Step")
-                    print("                -> Code: \(status) - " + SDError.errorMessageFromCode(Int(status)))
-                    if let errMsg = String.fromCString(sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB)) {
+                    print("                -> Code: \(status) - " + SDError.errorMessageFromCode(errorCode: Int(status)))
+                    if let errMsg = sqlite3_errmsg(SQLiteDB.sharedInstance.sqliteDB) {
                         print("                -> Details: \(errMsg)")
                     }
                     sqlite3_finalize(pStmt)
@@ -1580,16 +1580,16 @@ public struct SwiftData {
         */
         public func asUIImage() -> UIImage? {
             if let path = value as? String{
-                let docsPath = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]
-                let imageDirPath = docsPath.stringByAppendingPathComponent("SwiftDataImages")
-                let fullPath = imageDirPath.stringByAppendingPathComponent(path)
-                if !NSFileManager.defaultManager().fileExistsAtPath(fullPath) {
+                let docsPath = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)[0]
+                let imageDirPath = docsPath.stringByAppendingPathComponent(path: "SwiftDataImages")
+                let fullPath = imageDirPath.stringByAppendingPathComponent(path: path)
+                if !FileManager.default.fileExists(atPath: fullPath) {
                     print("SwiftData Error -> Invalid image ID provided")
                     return nil
                 }
                 let imageAsData = NSData(contentsOfFile: fullPath)
                 if let imageAsData = imageAsData {
-                    return UIImage(data: imageAsData)
+                    return UIImage(data: imageAsData as Data)
                 }
             }
             return nil
@@ -1600,7 +1600,7 @@ public struct SwiftData {
 
     // MARK: - Error Handling
 
-    private struct SDError {
+    public struct SDError {
 
     }
 
@@ -1617,7 +1617,7 @@ extension SwiftData.SQLiteDB {
         var newSql = ""
         var bindIndex = 0
         var i = false
-        for char in sql.characters {
+        for char in sql {
             if char == "?" {
                 if bindIndex > objects.count - 1 {
                     print("SwiftData Error -> During: Object Binding")
@@ -1627,15 +1627,15 @@ extension SwiftData.SQLiteDB {
                 var obj = ""
                 if i {
                     if let str = objects[bindIndex] as? String {
-                        obj = escapeIdentifier(str)
+                        obj = escapeIdentifier(obj: str)
                     } else {
                         print("SwiftData Error -> During: Object Binding")
                         print("                -> Code: 203 - Object to bind as identifier must be a String at array location: \(bindIndex)")
                         return ("", 203)
                     }
-                    newSql = newSql.substringToIndex(newSql.endIndex.predecessor())
+                    newSql = String(newSql[..<newSql.endIndex])
                 } else {
-                    obj = escapeValue(objects[bindIndex])
+                    obj = escapeValue(obj: objects[bindIndex])
                 }
                 newSql += obj
                 bindIndex += 1
@@ -1664,7 +1664,7 @@ extension SwiftData.SQLiteDB {
         if let obj: AnyObject = obj {
 
             if obj is String {
-                return "'\(escapeStringValue(obj as! String))'"
+                return "'\(escapeStringValue(str: obj as! String))'"
             }
 
             if obj is Double || obj is Int {
@@ -1682,7 +1682,7 @@ extension SwiftData.SQLiteDB {
             if obj is NSData {
                 let str = "\(obj)"
                 var newStr = ""
-                for char in str.characters {
+                for char in str {
                     if char != "<" && char != ">" && char != " " {
                         newStr.append(char)
                     }
@@ -1692,14 +1692,14 @@ extension SwiftData.SQLiteDB {
             }
 
             if obj is NSDate {
-                let dateFormatter = NSDateFormatter()
+                let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                return "\(escapeValue(dateFormatter.stringFromDate(obj as! NSDate)))"
+                return "\(escapeValue(obj: dateFormatter.string(from: (obj as! NSDate) as Date) as AnyObject))"
             }
 
             if obj is UIImage {
-                if let imageID = SD.saveUIImage(obj as! UIImage) {
-                    return "'\(escapeStringValue(imageID))'"
+                if let imageID = SD.saveUIImage(image: obj as! UIImage) {
+                    return "'\(escapeStringValue(str: imageID))'"
                 }
                 print("SwiftData Warning -> Cannot save image, NULL will be inserted into the database")
                 return "NULL"
@@ -1717,7 +1717,7 @@ extension SwiftData.SQLiteDB {
     //return escaped String identifier
     func escapeIdentifier(obj: String) -> String {
 
-        return "\"\(escapeStringIdentifier(obj))\""
+        return "\"\(escapeStringIdentifier(str: obj))\""
 
     }
 
@@ -1725,7 +1725,7 @@ extension SwiftData.SQLiteDB {
     //escape string
     func escapeStringValue(str: String) -> String {
         var escapedStr = ""
-        for char in str.characters {
+        for char in str {
             if char == "'" {
                 escapedStr += "'"
             }
@@ -1738,7 +1738,7 @@ extension SwiftData.SQLiteDB {
     //escape string
     func escapeStringIdentifier(str: String) -> String {
         var escapedStr = ""
-        for char in str.characters {
+        for char in str {
             if char == "\"" {
                 escapedStr += "\""
             }
@@ -1776,7 +1776,7 @@ extension SwiftData {
         case DateVal
         case UIImageVal
 
-        private func toSQL() -> String {
+        public func toSQL() -> String {
 
             switch self {
 
@@ -1810,7 +1810,7 @@ extension SwiftData {
         case ReadWrite
         case ReadWriteCreate
 
-        private func toSQL() -> Int32 {
+        public func toSQL() -> Int32 {
 
             switch self {
             case .ReadOnly:
@@ -1838,16 +1838,16 @@ extension SwiftData.SQLiteDB {
         var firstRun = true
         for value in values {
             if firstRun {
-                sqlStr += "\(escapeIdentifier(value.0)) \(value.1.toSQL())"
+                sqlStr += "\(escapeIdentifier(obj: value.0)) \(value.1.toSQL())"
                 firstRun = false
             } else {
-                sqlStr += ", \(escapeIdentifier(value.0)) \(value.1.toSQL())"
+                sqlStr += ", \(escapeIdentifier(obj: value.0)) \(value.1.toSQL())"
             }
         }
         sqlStr += ")"
 
         //execute update to create new table
-        return executeChange(sqlStr)
+        return executeChange(sqlStr: sqlStr)
     }
 
     //delete a table
@@ -1857,14 +1857,14 @@ extension SwiftData.SQLiteDB {
         let sqlStr = "DROP TABLE \(table)"
 
         //execute update to delete table
-        return executeChange(sqlStr)
+        return executeChange(sqlStr: sqlStr)
     }
 
     //get existing table names
     func existingTables() -> (result: [String], error: Int?) {
         let sqlStr = "SELECT name FROM sqlite_master WHERE type = 'table'"
         var tableArr = [String]()
-        let results = executeQuery(sqlStr)
+        let results = executeQuery(sqlStr: sqlStr)
         if let err = results.error {
             return (tableArr, err)
         }
@@ -1907,7 +1907,7 @@ extension SwiftData.SQLiteDB {
         }
         sqlStr += ")"
 
-        return executeChange(sqlStr)
+        return executeChange(sqlStr: sqlStr)
     }
 
     //remove an index
@@ -1915,7 +1915,7 @@ extension SwiftData.SQLiteDB {
 
         let sqlStr = "DROP INDEX \(name)"
 
-        return executeChange(sqlStr)
+        return executeChange(sqlStr: sqlStr)
     }
 
     //obtain list of existing indexes
@@ -1924,7 +1924,7 @@ extension SwiftData.SQLiteDB {
         let sqlStr = "SELECT name FROM sqlite_master WHERE type = 'index'"
 
         var indexArr = [String]()
-        let results = executeQuery(sqlStr)
+        let results = executeQuery(sqlStr: sqlStr)
         if let err = results.error {
             return (indexArr, err)
         }
@@ -1947,7 +1947,7 @@ extension SwiftData.SQLiteDB {
         let sqlStr = "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = '\(table)'"
 
         var indexArr = [String]()
-        let results = executeQuery(sqlStr)
+        let results = executeQuery(sqlStr: sqlStr)
         if let err = results.error {
             return (indexArr, err)
         }
@@ -1971,7 +1971,7 @@ extension SwiftData.SQLiteDB {
 extension SwiftData.SDError {
 
     //get the error message from the error code
-    private static func errorMessageFromCode(errorCode: Int) -> String {
+    public static func errorMessageFromCode(errorCode: Int) -> String {
 
         switch errorCode {
 
@@ -2118,14 +2118,14 @@ extension String {
 
         get {
 
-            return (self as NSString).stringByDeletingLastPathComponent
+            return (self as NSString).deletingLastPathComponent
         }
     }
     var stringByDeletingPathExtension: String {
 
         get {
 
-            return (self as NSString).stringByDeletingPathExtension
+            return (self as NSString).deletingPathExtension
         }
     }
     var pathComponents: [String] {
@@ -2140,13 +2140,13 @@ extension String {
 
         let nsSt = self as NSString
 
-        return nsSt.stringByAppendingPathComponent(path)
+        return nsSt.appendingPathComponent(path)
     }
 
     func stringByAppendingPathExtension(ext: String) -> String? {
 
         let nsSt = self as NSString
 
-        return nsSt.stringByAppendingPathExtension(ext)
+        return nsSt.appendingPathExtension(ext)
     }
 }

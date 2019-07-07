@@ -27,7 +27,7 @@ public class GeofencePlugin extends CordovaPlugin {
     public static final String ERROR_GEOFENCE_NOT_AVAILABLE = "GEOFENCE_NOT_AVAILABLE";
     public static final String ERROR_GEOFENCE_LIMIT_EXCEEDED = "GEOFENCE_LIMIT_EXCEEDED";
 
-    private GeoNotificationManager geoNotificationManager;
+    private GeofenceManager geofenceManager;
     private Context context;
     public static CordovaWebView webView = null;
 
@@ -43,22 +43,14 @@ public class GeofencePlugin extends CordovaPlugin {
         }
     }
 
-    //FIXME: what about many executedActions at once
     private Action executedAction;
 
-    /**
-     * @param cordova
-     *            The context of the main Activity.
-     * @param webView
-     *            The associated CordovaWebView.
-     */
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         GeofencePlugin.webView = webView;
         context = this.cordova.getActivity().getApplicationContext();
-        Logger.setLogger(new Logger(TAG, context, false));
-        geoNotificationManager = new GeoNotificationManager(context);
+        geofenceManager = new GeofenceManager(context);
     }
 
     @Override
@@ -70,25 +62,25 @@ public class GeofencePlugin extends CordovaPlugin {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 if (action.equals("addOrUpdate")) {
-                    List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
+                    List<GeofenceModel> geofenceModels = new ArrayList<GeofenceModel>();
                     for (int i = 0; i < args.length(); i++) {
-                        GeoNotification not = parseFromJSONObject(args.optJSONObject(i));
-                        if (not != null) {
-                            geoNotifications.add(not);
+                        GeofenceModel geofenceModel = parseFromJSONObject(args.optJSONObject(i));
+                        if (geofenceModel != null) {
+                            geofenceModels.add(geofenceModel);
                         }
                     }
-                    geoNotificationManager.addGeoNotifications(geoNotifications, callbackContext);
+                    geofenceManager.addOrUpdate(geofenceModels, callbackContext);
                 } else if (action.equals("remove")) {
                     List<String> ids = new ArrayList<String>();
                     for (int i = 0; i < args.length(); i++) {
                         ids.add(args.optString(i));
                     }
-                    geoNotificationManager.removeGeoNotifications(ids, callbackContext);
+                    geofenceManager.remove(ids, callbackContext);
                 } else if (action.equals("removeAll")) {
-                    geoNotificationManager.removeAllGeoNotifications(callbackContext);
+                    geofenceManager.removeAll(callbackContext);
                 } else if (action.equals("getWatched")) {
-                    List<GeoNotification> geoNotifications = geoNotificationManager.getWatched();
-                    callbackContext.success(Gson.get().toJson(geoNotifications));
+                    List<GeofenceModel> geofenceModels = geofenceManager.getWatched();
+                    callbackContext.success(Gson.get().toJson(geofenceModels));
                 } else if (action.equals("initialize")) {
                     initialize(callbackContext);
                 } else if (action.equals("deviceReady")) {
@@ -104,12 +96,12 @@ public class GeofencePlugin extends CordovaPlugin {
         return execute(action.action, action.args, action.callbackContext);
     }
 
-    private GeoNotification parseFromJSONObject(JSONObject object) {
-        GeoNotification geo = GeoNotification.fromJson(object.toString());
+    private GeofenceModel parseFromJSONObject(JSONObject object) {
+        GeofenceModel geo = GeofenceModel.fromJson(object.toString());
         return geo;
     }
 
-    public static void onTransitionReceived(List<GeoNotification> notifications) {
+    public static void onTransitionReceived(List<GeofenceModel> notifications) {
         Log.d(TAG, "Transition Event Received!");
         String js = "setTimeout('geofence.onTransitionReceived("
             + Gson.get().toJson(notifications) + ")',0)";
@@ -134,7 +126,6 @@ public class GeofencePlugin extends CordovaPlugin {
 
     private void initialize(CallbackContext callbackContext) {
         String[] permissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION
         };
 

@@ -1,4 +1,10 @@
 # ChangeLog
+## Version 0.8.0 - 07.14.2019
+- Dramatic change from previous version.
+- Remove capability of receiving geofence transition from Javascript side
+- Add capability of receiving geofence transition from native code
+- Some refactoring
+
 
 ## Version 0.7.0 - 14.05.2017
 

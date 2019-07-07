@@ -36,10 +36,6 @@ interface GeofencePlugin {
     successCallback?: (result: any) => void,
     errorCallback?: (error: string) => void
   ): Promise<string>;
-
-  onTransitionReceived: (geofences: Geofence[]) => void;
-  
-  onNotificationClicked: (notificationData: Object) => void;
 }
 
 interface Geofence {
@@ -48,16 +44,4 @@ interface Geofence {
   longitude: number;
   radius: number;
   transitionType: number;
-  notification?: Notification;
-}
-
-interface Notification {
-  id?: number;
-  title?: string;
-  text: string;
-  smallIcon?: string;
-  icon?: string;
-  openAppOnClick?: boolean;
-  vibration?: number[];
-  data?: Object;
 }

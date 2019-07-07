@@ -5,27 +5,27 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GeoNotificationStore {
+public class GeofenceModelStore {
     private LocalStorage storage;
 
-    public GeoNotificationStore(Context context) {
+    public GeofenceModelStore(Context context) {
         storage = new LocalStorage(context);
     }
 
-    public void setGeoNotification(GeoNotification geoNotification) {
-        storage.setItem(geoNotification.id, Gson.get().toJson(geoNotification));
+    public void setGeofenceModel(GeofenceModel geofenceModel) {
+        storage.setItem(geofenceModel.id, Gson.get().toJson(geofenceModel));
     }
 
-    public GeoNotification getGeoNotification(String id) {
+    public GeofenceModel getGeofenceModel(String id) {
         String objectJson = storage.getItem(id);
-        return GeoNotification.fromJson(objectJson);
+        return GeofenceModel.fromJson(objectJson);
     }
 
-    public List<GeoNotification> getAll() {
+    public List<GeofenceModel> getAll() {
         List<String> objectJsonList = storage.getAllItems();
-        List<GeoNotification> result = new ArrayList<GeoNotification>();
+        List<GeofenceModel> result = new ArrayList<GeofenceModel>();
         for (String json : objectJsonList) {
-            result.add(GeoNotification.fromJson(json));
+            result.add(GeofenceModel.fromJson(json));
         }
         return result;
     }
